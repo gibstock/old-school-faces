@@ -13,7 +13,8 @@ const nextConfig: NextConfig = {
         hostname: 'image.tmdb.org'
       }
     ]
-  }
+  },
+  basePath: '/oldschoolfaces'
 };
 
 export default nextConfig;
