@@ -212,13 +212,16 @@ export default function HomePage() {
       gameState.status === 'won'
         ? `${guessCount}/${MAX_GUESSES}`
         : `X/${MAX_GUESSES}`;
-    const title = `Faces Game ${new Date().toLocaleDateString()}`;
+    const title = `Old School Faces ${new Date().toLocaleDateString()}`;
     const text = `${title}\n${result}\n\nCan you guess today's face?`;
+    const url = 'https://agws.app/oldschoolfaces';
 
     if (navigator.share) {
-      await navigator.share({ title, text });
+      await navigator.share({ title, text, url });
     } else {
-      await navigator.clipboard.writeText(text);
+      await navigator.clipboard.writeText(
+        `${text}\n\n https://agws.app/oldschoolfaces`
+      );
       setShareText('Copied!');
       setTimeout(() => setShareText('Copy Score'), 2000);
     }
