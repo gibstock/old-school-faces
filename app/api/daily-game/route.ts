@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import path from 'path';
-import { promises as fs } from 'fs';
+import { promises as fsPromises, createWriteStream } from 'fs';
+import { pipeline } from 'stream/promises';
 import Replicate from 'replicate';
 import axios from 'axios';
 
@@ -79,7 +80,7 @@ export async function GET() {
     const modelIdentifier = 'stability-ai/sdxl';
     let cache: { [key: string]: string } = {};
      try {
-      const cacheFile = await fs.readFile(cachePath, 'utf8');
+      const cacheFile = await fsPromises.readFile(cachePath, 'utf8');
       cache = JSON.parse(cacheFile);
     } catch (error) {
       console.log('Cache file not found. A new one will be created.', error);
@@ -106,7 +107,7 @@ export async function GET() {
         }
         modelVersion = model.latest_version.id;
         cache[modelVersionKey] = modelVersion;
-        await fs.writeFile(cachePath, JSON.stringify(cache, null, 2));
+        await fsPromises.writeFile(cachePath, JSON.stringify(cache, null, 2));
         console.log('Latest model version cached:', modelVersion);
       } else {
         console.log('Using cached model version:', modelVersion);
@@ -126,11 +127,28 @@ export async function GET() {
         throw new Error("Image generation failed or produced no output.");
       }
 
-      fusedImageUrl = (completedPrediction.output as string[])[0];
+      const tempReplicateUrl = (completedPrediction.output as string[])[0];
 
+      const localImageName = `${today}.png`;
+      const savePath = path.join(process.cwd(), 'public', 'generated', localImageName);
+      const finalImageUrl = `/generated/${localImageName}`
+
+      console.log(`Downloading image from ${tempReplicateUrl} to ${savePath}`);
+
+      const response = await axios({
+        method: 'GET',
+        url: tempReplicateUrl,
+        responseType: 'stream'
+      })
+
+      await pipeline(response.data, createWriteStream(savePath));
+
+      console.log('Image successfully downloaded and saved locally.');
+
+      fusedImageUrl = finalImageUrl;
       cache[imageUrlKey] = fusedImageUrl;
-      await fs.writeFile(cachePath, JSON.stringify(cache, null, 2));
-      console.log('New image URL saved to cache.json.');
+      await fsPromises.writeFile(cachePath, JSON.stringify(cache, null, 2));
+      console.log('Permanent local image URL saved to cache.json.');
     }
 
     return NextResponse.json({
@@ -151,7 +169,7 @@ export async function GET() {
 async function generatePuzzleData() {
   
     const jsonPath = path.join(process.cwd(), 'lib', 'actors.json');
-    const fileContents = await fs.readFile(jsonPath, 'utf8');
+    const fileContents = await fsPromises.readFile(jsonPath, 'utf8');
     const actors: Actor[] = JSON.parse(fileContents);
     const today = new Date().toISOString().split('T')[0];
     const seededRandom = createSeededRandom(today);
