@@ -298,7 +298,7 @@ export default function HomePage() {
         {/* FUSED IMAGE */}
         <div className="relative w-full max-w-xs mx-auto aspect-square border-4 border-gray-600 rounded-lg overflow-hidden">
           <Image
-            src={gameData.fusedImageUrl}
+            src={`https://agws.app/oldschoolfaces${gameData.fusedImageUrl}`}
             alt="Fused actor face"
             layout="fill"
             objectFit="cover"
