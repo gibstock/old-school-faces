@@ -73,9 +73,19 @@ const getActorDetails = async (actorId: number) => {
   }
 };
 
+function getPSTDateString() {
+  const now = new Date();
+  const year = now.toLocaleString('en-US', { timeZone: 'America/Los_Angeles', year: 'numeric' });
+  const month = now.toLocaleString('en-US', { timeZone: 'America/Los_Angeles', month: '2-digit' });
+  const day = now.toLocaleString('en-US', { timeZone: 'America/Los_Angeles', day: '2-digit' });
+  // The locale string is MM/DD/YYYY, so reformat it
+  return `${year}-${month}-${day}`;
+}
+
 export async function GET() {
   try {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getPSTDateString()
+
     const cachePath = path.join(process.cwd(), 'lib', 'cache.json');
     const modelIdentifier = 'stability-ai/sdxl';
     let cache: { [key: string]: string } = {};
@@ -171,7 +181,7 @@ async function generatePuzzleData() {
     const jsonPath = path.join(process.cwd(), 'lib', 'actors.json');
     const fileContents = await fsPromises.readFile(jsonPath, 'utf8');
     const actors: Actor[] = JSON.parse(fileContents);
-    const today = new Date().toISOString().split('T')[0];
+    const today = getPSTDateString();
     const seededRandom = createSeededRandom(today);
     const index1 = Math.floor(seededRandom() * actors.length);
     let index2 = Math.floor(seededRandom() * actors.length);
