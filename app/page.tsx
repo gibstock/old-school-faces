@@ -137,7 +137,7 @@ export default function HomePage() {
 
     const fetchGameData = async () => {
       try {
-        const response = await fetch('api/daily-game');
+        const response = await fetch('/oldschoolfaces/api/daily-game');
         if (!response.ok) throw new Error('Failed to fetch game data');
         const data: GameData = await response.json();
         setGameData(data);
